@@ -3,6 +3,9 @@ Training and testing for OmiEmbed
 """
 import time
 import warnings
+import numpy as np
+
+import torch
 from util import util
 from params.train_test_params import TrainTestParams
 from datasets import create_separate_dataloader
@@ -17,7 +20,7 @@ if __name__ == "__main__":
     param = TrainTestParams().parse()
     if param.deterministic:
         util.setup_seed(param.seed)
-
+        
     # Dataset related
     full_dataloader, train_dataloader, val_dataloader, test_dataloader = create_separate_dataloader(param)
     print('The size of training set is {}'.format(len(train_dataloader)))
@@ -108,7 +111,7 @@ if __name__ == "__main__":
             dataset_size = len(test_dataloader)
             actual_batch_size = len(data['index'])
             model.set_input(data)                                   # Unpack input data from the output dictionary of the dataloader
-            model.test()                                            # Run forward to get the output tensors
+            model.test()                                          # Run forward to get the output tensors
             model.update_log_dict(output_dict, losses_dict, metrics_dict, actual_batch_size)  # Update the log dictionaries
             if i % param.print_freq == 0:                           # Print testing log
                 visualizer.print_test_log(epoch, i, losses_dict, metrics_dict, param.batch_size, dataset_size)

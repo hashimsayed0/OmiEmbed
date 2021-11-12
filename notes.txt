@@ -1,0 +1,31 @@
+Experiments
+
+net_VAE - normalized
+recon_loss - normalized
+omics_mode - unnormalized
+
+ABC_inter vs ABC_inter2 = 2 saves model for visualization of z
+ABC_inter_MSE - MSE on unnormalized data (because recon_loss tuning was on normalized data)
+
+Chosen A dataset (the one in main data folder): unnormalized
+Chosen B dataset (the one in main data folder): B_meanimp
+Chosen C dataset (the one in main data folder): unnormalized
+
+C dataset didnt have values of GBM, so they were mean imputed for around 61 patients that had both A and B data
+
+Plots
+1. tsne
+2. ABC_inter - recon_loss comparison between A, B and C
+3. net_VAE / recon_loss / latent_space_dim / omics_mode: test accuracy comparison btw hyperparamter values
+4. ABC_inter - KL loss : test and train : change in phases
+
+Tables
+1. omics mode
+2. net_VAE
+3. recon_loss
+4. latent_space_dim
+
+Final report modifications
+1. Normalize C dataset too, and test ABC_inter_MSE
+2. future work section on baseline paper
+3. zero shot learning

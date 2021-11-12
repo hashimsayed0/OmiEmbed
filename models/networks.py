@@ -335,7 +335,7 @@ class ConvVaeABC(nn.Module):
         level_2 = self.up_sample_1(level_1_unflatten)
         level_2_B = level_2.narrow(2, 0, self.narrow_B)
         level_2_A = level_2.narrow(2, self.narrow_B, self.narrow_A)
-        level_2_C = level_2.narrow(2, self.narrow_B+self.narrow_A, self.narrow_C)
+        level_2_C = level_2.narrow(2, self.narrow_B+self.narrow_A, self.narrow_C+1)
 
         level_3_B = self.up_sample_2B(level_2_B)
         level_3_A = self.up_sample_2A(level_2_A)

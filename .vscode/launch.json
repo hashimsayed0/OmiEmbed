@@ -1,0 +1,155 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "test",
+            "type": "python",
+            "request": "launch",
+            "program": "train_test.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--omics_mode",
+                "c",
+                "--experiment_name",
+                "test",
+                "--file_format",
+                "npy",
+                "--checkpoints_dir",
+                "./checkpoints",
+                "--data_root",
+                "./data/ABC_inter",
+                "--use_sample_list"
+            ]
+        },
+        {
+            "name": "latent_256",
+            "type": "python",
+            "request": "launch",
+            "program": "train_test.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--omics_mode",
+                "abc",
+                "--experiment_name",
+                "latent_256",
+                "--file_format",
+                "npy",
+                "--checkpoints_dir",
+                "./checkpoints/latent_space_dim",
+                "--data_root",
+                "./data/ABC_inter",
+                "--use_sample_list",
+                "--save_model",
+                "--latent_space_dim",
+                "256"
+            ]
+        },
+        {
+            "name": "ABC_inter_MSE",
+            "type": "python",
+            "request": "launch",
+            "program": "train_test.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--omics_mode",
+                "abc",
+                "--experiment_name",
+                "ABC_inter_MSE",
+                "--file_format",
+                "npy",
+                "--checkpoints_dir",
+                "./checkpoints/omics_mode/ABC",
+                "--data_root",
+                "./data/ABC_inter",
+                "--use_sample_list",
+                "--save_model",
+                "--recon_loss",
+                "MSE"
+            ]
+        },
+        {
+            "name": "L1",
+            "type": "python",
+            "request": "launch",
+            "program": "train_test.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--omics_mode",
+                "abc",
+                "--experiment_name",
+                "L1",
+                "--file_format",
+                "npy",
+                "--checkpoints_dir",
+                "./checkpoints/recon_loss",
+                "--data_root",
+                "./data/ABC_inter",
+                "--use_sample_list",
+                "--recon_loss",
+                "L1"
+            ]
+        },
+        {
+            "name": "visual_test2",
+            "type": "python",
+            "request": "launch",
+            "program": "test.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--omics_mode",
+                "abc",
+                "--experiment_name",
+                "visual_test2",
+                "--file_format",
+                "npy",
+                "--checkpoints_dir",
+                "./checkpoints",
+                "--data_root",
+                "./data/ABC_inter",
+                "--use_sample_list",
+                "--save_latent_space",
+                "--experiment_to_load",
+                "omics_mode/ABC/ABC_inter2",
+                "--epoch_to_load",
+                "200"
+            ]
+        },
+        {
+            "name": "ab_inter",
+            "type": "python",
+            "request": "launch",
+            "program": "train_test.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--omics_mode",
+                "ab",
+                "--experiment_name",
+                "AB_inter",
+                "--file_format",
+                "npy",
+                "--data_root",
+                "./data/AB_inter"
+            ]
+        },
+        {
+            "name": "B_meanimp",
+            "type": "python",
+            "request": "launch",
+            "program": "train_test.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--omics_mode",
+                "b",
+                "--experiment_name",
+                "B_meanimp",
+                "--file_format",
+                "npy",
+                "--data_root",
+                "./data/B_meanimp"
+            ]
+        }
+    ]
+}
