@@ -77,6 +77,22 @@ class BasicParams:
                             help='choose the method of network initialization, options: [normal | xavier_normal | xavier_uniform | kaiming_normal | kaiming_uniform | orthogonal]')
         parser.add_argument('--init_gain', type=float, default=0.02,
                             help='scaling factor for normal, xavier and orthogonal initialization methods')
+        
+        # Feature subsetting
+        parser.add_argument('--use_subset_features', action='store_true',
+                            help='divide features into subsets, train using each subset, and sum up total reconstruction losses while training with each subset. net_VAE will be set to fc if this argument is provided')
+        parser.add_argument("--subset_num", type=int, default=1,
+                            help='No of subsets to divide features into')
+        parser.add_argument("--agg_method", type=str, default='mean',
+                            help='Method to use while aggregating representations from multiple subsets for downstream task, options: [mean | max | min | sum | concat | random]')
+        parser.add_argument("--enc_reduction_factor", type=int, default=1,
+                            help='the factor by which dimension of encoder hidden layers should be divided')
+        parser.add_argument("--dec_reduction_factor", type=int, default=1,
+                            help='the factor by which dimension of decoder hidden layers should be divided')
+        parser.add_argument("--down_reduction_factor", type=int, default=1,
+                            help='the factor by which dimension of downstream hidden layers should be divided')
+        parser.add_argument("--use_subset_identity", action='store_true', 
+                            help='use one hot encoded subset identity as additional input to downstream task.')
 
         # Loss parameters
         parser.add_argument('--recon_loss', type=str, default='BCE',
@@ -158,6 +174,12 @@ class BasicParams:
         param = self.get_params()  # get the parameters to the object param
         param.isTrain = self.isTrain
         param.isTest = self.isTest
+
+        if param.use_subset_features:
+            param.net_VAE = 'fc'
+
+        if param.use_subset_identity:
+            param.agg_method = 'mean'
 
         # Print welcome words and command line parameters
         self.print_params(param)

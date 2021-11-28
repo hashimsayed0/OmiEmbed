@@ -187,6 +187,18 @@ def load_file(param, file_name):
         file_path = os.path.join(param.data_root, file_name + '.h5')
         print('Loading data from ' + file_path)
         df = pd.read_hdf(file_path, header=0, index_col=0)
+    elif param.file_format == 'npy':
+        file_path = os.path.join(param.data_root, file_name + '.npy')
+        print('Loading data from ' + file_path)
+        values = np.load(file_path, allow_pickle=True)
+        features_path = os.path.join(param.data_root, file_name + '_features.npy')
+        print('Loading features from ' + features_path)
+        features = np.load(features_path, allow_pickle=True)
+        samples_path = os.path.join(param.data_root, file_name + '_samples.npy')
+        print('Loading samples from ' + samples_path)
+        samples = np.load(samples_path, allow_pickle=True)
+        df = pd.DataFrame(data=values, index=features, columns=samples)
+
     else:
         raise NotImplementedError('File format %s is supported' % param.file_format)
     return df

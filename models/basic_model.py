@@ -44,8 +44,10 @@ class BasicModel(ABC):
 
         self.latent = None
         self.loss_embed = None
+        self.loss_embed_sum = []
         self.loss_down = None
         self.loss_All = None
+        
 
     @staticmethod
     def modify_commandline_parameters(parser, is_train):
@@ -197,6 +199,7 @@ class BasicModel(ABC):
                 # Use the str to get the attribute aka the network (self.netXXX)
                 net = getattr(self, 'net' + model_name)
                 net.train()
+        self.isTrain = True
 
     def set_eval(self):
         """
@@ -207,6 +210,7 @@ class BasicModel(ABC):
                 # Use the str to get the attribute aka the network (self.netG / self.netD)
                 net = getattr(self, 'net' + model_name)
                 net.eval()
+        self.isTrain = False
 
     def test(self):
         """
@@ -215,6 +219,30 @@ class BasicModel(ABC):
         with torch.no_grad():
             self.forward()
             self.cal_losses()
+            # if self.param.use_subset_features:
+            #     self.loss_embed_sum = []
+            #     self.loss_down_sum = []
+            #     self.y_out_subset = []
+            #     for subset in range(self.param.subset_num):
+            #         self.subset = subset
+            #         self.forward()
+            #         self.y_out_subset.append(self.y_out)
+            #         self.cal_losses()
+            #         self.loss_embed_sum.append(self.loss_embed)
+            #         self.loss_down_sum.append(self.loss_down)
+            #     self.loss_embed = sum(self.loss_embed_sum) / self.param.subset_num
+            #     self.loss_down = sum(self.loss_down_sum) / self.param.subset_num
+            #     if self.param.agg_method == 'mean':
+            #         self.y_out = torch.mean(torch.stack(self.y_out_subset), axis=0)
+            #     elif self.param.agg_method == 'max':
+            #         self.y_out = torch.max(torch.stack(self.y_out_subset), axis=0)[0]
+            #     elif self.param.agg_method == 'min':
+            #         self.y_out = torch.min(torch.stack(self.y_out_subset), axis=0)[0]
+            #     elif self.param.agg_method == 'sum':
+            #         self.y_out = torch.sum(torch.stack(self.y_out_subset), axis=0)
+            # else:
+            #     self.forward()
+            #     self.cal_losses()
 
     def init_output_dict(self):
         """

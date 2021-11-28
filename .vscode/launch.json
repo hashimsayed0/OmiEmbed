@@ -1,0 +1,157 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "2_ii",
+            "type": "python",
+            "request": "launch",
+            "program": "train_test.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--omics_mode", "abc",
+                "--experiment_name", "2_ii",
+                "--file_format", "npy",
+                "--checkpoints_dir", "./checkpoints/subset/subset_num/8_4_2",
+                "--data_root", "./data/ABC_inter",
+                "--use_sample_list",
+                "--net_VAE", "fc",
+                "--recon_loss", "MSE",
+                "--k_embed", "0.0001",
+                "--epoch_num_p1", "0",
+                "--epoch_num_p2", "0",
+                "--epoch_num_p3", "30",
+                "--save_model",
+                "--deterministic",
+                "--use_subset_features",
+                "--subset_num", "2",
+                "--enc_reduction_factor", "8",
+                "--dec_reduction_factor", "4",
+                "--down_reduction_factor", "2",
+                "--use_subset_identity",
+                "--agg_method", "mean",
+                "--continue_train",
+                "--experiment_to_load", "2",
+                "--epoch_to_load", "130",
+            ]
+        },
+        {
+            "name": "min",
+            "type": "python",
+            "request": "launch",
+            "program": "train_test.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--omics_mode", "abc",
+                "--experiment_name", "min",
+                "--file_format", "npy",
+                "--checkpoints_dir", "./checkpoints/subset/agg_method/8_4_2_sub4",
+                "--data_root", "./data/ABC_inter",
+                "--use_sample_list",
+                "--net_VAE", "fc",
+                "--recon_loss", "MSE",
+                "--k_embed", "0.0001",
+                "--epoch_num_p1", "15",
+                "--epoch_num_p2", "0",
+                "--epoch_num_p3", "115",
+                "--save_model",
+                "--deterministic",
+                "--use_subset_features",
+                "--subset_num", "4",
+                "--enc_reduction_factor", "8",
+                "--dec_reduction_factor", "4",
+                "--down_reduction_factor", "2",
+                "--use_subset_identity",
+                "--agg_method", "min"
+            ]
+        },
+        {
+            "name": "regression",
+            "type": "python",
+            "request": "launch",
+            "program": "train_test.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--omics_mode", "abc",
+                "--experiment_name", "regression",
+                "--file_format", "npy",
+                "--checkpoints_dir", "./checkpoints/task",
+                "--data_root", "./data/ABC_inter",
+                "--use_sample_list",
+                "--net_VAE", "fc_sep",
+                "--recon_loss", "MSE",
+                "--k_embed", "0.001",
+                "--epoch_num_p1", "50",
+                "--epoch_num_p2", "50",
+                "--epoch_num_p3", "100",
+                "--save_model",
+                "--model", "vae_regression",
+                "--net_down","multi_FC_regression",
+                "--deterministic"
+            ]
+        },
+        {
+            "name": "visual_test2",
+            "type": "python",
+            "request": "launch",
+            "program": "test.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--omics_mode",
+                "abc",
+                "--experiment_name",
+                "visual_test2",
+                "--file_format",
+                "npy",
+                "--checkpoints_dir",
+                "./checkpoints/subset/subset_num/unnormalized",
+                "--data_root",
+                "./data/ABC_inter",
+                "--use_sample_list",
+                "--experiment_to_load",
+                "4",
+                "--epoch_to_load",
+                "200",
+                "--use_subset_features",
+                "--subset_num", "4",
+                "--deterministic"
+            ]
+        },
+        {
+            "name": "ab_inter",
+            "type": "python",
+            "request": "launch",
+            "program": "train_test.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--omics_mode",
+                "ab",
+                "--experiment_name",
+                "AB_inter",
+                "--file_format",
+                "npy",
+                "--data_root",
+                "./data/AB_inter"
+            ]
+        },
+        {
+            "name": "B_meanimp",
+            "type": "python",
+            "request": "launch",
+            "program": "train_test.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--omics_mode",
+                "b",
+                "--experiment_name",
+                "B_meanimp",
+                "--file_format",
+                "npy",
+                "--data_root",
+                "./data/B_meanimp"
+            ]
+        }
+    ]
+}

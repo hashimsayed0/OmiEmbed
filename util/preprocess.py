@@ -17,7 +17,7 @@ def separate_B(B_df_single):
     """
     anno = pd.read_csv('./anno/B_anno.csv', dtype={'CHR': str}, index_col=0)
     anno_contain = anno.loc[B_df_single.index, :]
-    print('Separating B.tsv according the targeting chromosome...')
+    print('Separating B according the targeting chromosome...')
     B_df_list, B_dim_list = [], []
     ch_id = list(range(1, 23))
     ch_id.append('X')
