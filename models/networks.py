@@ -1200,7 +1200,7 @@ class FcVaeABC(nn.Module):
         Defines a fully-connected variational autoencoder for multi-omics dataset
         DNA methylation input not separated by chromosome
     """
-    def __init__(self, omics_dims, norm_layer=nn.BatchNorm1d, leaky_slope=0.2, dropout_p=0, dim_1B=384, dim_2B=256,
+    def __init__(self, param, omics_dims, omics_subset_dims, norm_layer=nn.BatchNorm1d, leaky_slope=0.2, dropout_p=0, dim_1B=384, dim_2B=256,
                  dim_1A=384, dim_2A=256, dim_1C=384, dim_2C=256, dim_3=256, latent_dim=256):
         """
             Construct a fully-connected variational autoencoder
@@ -1214,22 +1214,39 @@ class FcVaeABC(nn.Module):
 
         super(FcVaeABC, self).__init__()
 
+        if omics_subset_dims is not None:
+            self.A_subset_dim = omics_subset_dims[0]
+            self.B_subset_dim = omics_subset_dims[1]
+            self.C_subset_dim = omics_subset_dims[2]
+
+        # Decoder dimensions
+        self.dim_1A = dim_1A // param.dec_reduction_factor ; self.dim_1B = dim_1B // param.dec_reduction_factor ; self.dim_1C = dim_1C // param.dec_reduction_factor
+        self.dim_2A = dim_2A // param.dec_reduction_factor ; self.dim_2B = dim_2B // param.dec_reduction_factor ; self.dim_2C = dim_2C // param.dec_reduction_factor
+
+        # Encoder dimensions
+        dim_1A //= param.enc_reduction_factor ; dim_1B //= param.enc_reduction_factor ; dim_1C //= param.enc_reduction_factor
+        dim_2B //= param.enc_reduction_factor ; dim_2B //= param.enc_reduction_factor ; dim_2C //= param.enc_reduction_factor
+        
         self.A_dim = omics_dims[0]
         self.B_dim = omics_dims[1]
         self.C_dim = omics_dims[2]
-        self.dim_1B = dim_1B
-        self.dim_2B = dim_2B
-        self.dim_2A = dim_2A
-        self.dim_2C = dim_2C
-
+        
         # ENCODER
         # Layer 1
-        self.encode_fc_1B = FCBlock(self.B_dim, dim_1B, norm_layer=norm_layer, leaky_slope=leaky_slope, dropout_p=dropout_p,
-                                    activation=True)
-        self.encode_fc_1A = FCBlock(self.A_dim, dim_1A, norm_layer=norm_layer, leaky_slope=leaky_slope, dropout_p=dropout_p,
-                                    activation=True)
-        self.encode_fc_1C = FCBlock(self.C_dim, dim_1C, norm_layer=norm_layer, leaky_slope=leaky_slope, dropout_p=dropout_p,
-                                    activation=True)
+        if omics_subset_dims is None:
+            self.encode_fc_1B = FCBlock(self.B_dim, dim_1B, norm_layer=norm_layer, leaky_slope=leaky_slope, dropout_p=dropout_p,
+                                        activation=True)
+            self.encode_fc_1A = FCBlock(self.A_dim, dim_1A, norm_layer=norm_layer, leaky_slope=leaky_slope, dropout_p=dropout_p,
+                                        activation=True)
+            self.encode_fc_1C = FCBlock(self.C_dim, dim_1C, norm_layer=norm_layer, leaky_slope=leaky_slope, dropout_p=dropout_p,
+                                        activation=True)
+        else:
+            self.encode_fc_1B = FCBlock(self.B_subset_dim, dim_1B, norm_layer=norm_layer, leaky_slope=leaky_slope, dropout_p=dropout_p,
+                                        activation=True)
+            self.encode_fc_1A = FCBlock(self.A_subset_dim, dim_1A, norm_layer=norm_layer, leaky_slope=leaky_slope, dropout_p=dropout_p,
+                                        activation=True)
+            self.encode_fc_1C = FCBlock(self.C_subset_dim, dim_1C, norm_layer=norm_layer, leaky_slope=leaky_slope, dropout_p=dropout_p,
+                                        activation=True)
         # Layer 2
         self.encode_fc_2B = FCBlock(dim_1B, dim_2B, norm_layer=norm_layer, leaky_slope=leaky_slope, dropout_p=dropout_p,
                                     activation=True)
@@ -1251,21 +1268,21 @@ class FcVaeABC(nn.Module):
         self.decode_fc_z = FCBlock(latent_dim, dim_3, norm_layer=norm_layer, leaky_slope=leaky_slope, dropout_p=dropout_p,
                                    activation=True)
         # Layer 2
-        self.decode_fc_2 = FCBlock(dim_3, dim_2B+dim_2A+dim_2C, norm_layer=norm_layer, leaky_slope=leaky_slope, dropout_p=dropout_p,
+        self.decode_fc_2 = FCBlock(dim_3, self.dim_2B+self.dim_2A+self.dim_2C, norm_layer=norm_layer, leaky_slope=leaky_slope, dropout_p=dropout_p,
                                    activation=True)
         # Layer 3
-        self.decode_fc_3B = FCBlock(dim_2B, dim_1B, norm_layer=norm_layer, leaky_slope=leaky_slope, dropout_p=dropout_p,
+        self.decode_fc_3B = FCBlock(self.dim_2B, self.dim_1B, norm_layer=norm_layer, leaky_slope=leaky_slope, dropout_p=dropout_p,
                                     activation=True)
-        self.decode_fc_3A = FCBlock(dim_2A, dim_1A, norm_layer=norm_layer, leaky_slope=leaky_slope, dropout_p=dropout_p,
+        self.decode_fc_3A = FCBlock(self.dim_2A, self.dim_1A, norm_layer=norm_layer, leaky_slope=leaky_slope, dropout_p=dropout_p,
                                     activation=True)
-        self.decode_fc_3C = FCBlock(dim_2C, dim_1C, norm_layer=norm_layer, leaky_slope=leaky_slope, dropout_p=dropout_p,
+        self.decode_fc_3C = FCBlock(self.dim_2C, self.dim_1C, norm_layer=norm_layer, leaky_slope=leaky_slope, dropout_p=dropout_p,
                                     activation=True)
         # Layer 4
-        self.decode_fc_4B = FCBlock(dim_1B, self.B_dim, norm_layer=norm_layer, leaky_slope=leaky_slope, dropout_p=0,
+        self.decode_fc_4B = FCBlock(self.dim_1B, self.B_dim, norm_layer=norm_layer, leaky_slope=leaky_slope, dropout_p=0,
                                     activation=False, normalization=False)
-        self.decode_fc_4A = FCBlock(dim_1A, self.A_dim, norm_layer=norm_layer, leaky_slope=leaky_slope, dropout_p=0,
+        self.decode_fc_4A = FCBlock(self.dim_1A, self.A_dim, norm_layer=norm_layer, leaky_slope=leaky_slope, dropout_p=0,
                                     activation=False, normalization=False)
-        self.decode_fc_4C = FCBlock(dim_1C, self.C_dim, norm_layer=norm_layer, leaky_slope=leaky_slope, dropout_p=0,
+        self.decode_fc_4C = FCBlock(self.dim_1C, self.C_dim, norm_layer=norm_layer, leaky_slope=leaky_slope, dropout_p=0,
                                     activation=False, normalization=False)
 
     def encode(self, x):
@@ -1700,7 +1717,7 @@ class MultiFcClassifier(nn.Module):
     """
     Defines a multi-layer fully-connected classifier
     """
-    def __init__(self, class_num=2, latent_dim=256, norm_layer=nn.BatchNorm1d, leaky_slope=0.2, dropout_p=0,
+    def __init__(self, param, class_num=2, latent_dim=256, norm_layer=nn.BatchNorm1d, leaky_slope=0.2, dropout_p=0,
                  class_dim_1=128, class_dim_2=64, layer_num=3):
         """
         Construct a multi-layer fully-connected classifier
@@ -1713,6 +1730,9 @@ class MultiFcClassifier(nn.Module):
             layer_num (int)         -- the layer number of the classifier, >=3
         """
         super(MultiFcClassifier, self).__init__()
+
+        class_dim_1 = class_dim_1 // param.down_reduction_factor
+        class_dim_2 = class_dim_2 // param.down_reduction_factor
 
         self.input_fc = FCBlock(latent_dim, class_dim_1, norm_layer=norm_layer, leaky_slope=leaky_slope, dropout_p=dropout_p,
                                 activation=True)
@@ -2049,7 +2069,7 @@ def define_net(net_VAE, net_down, omics_dims, omics_mode='multi_omics', norm_typ
     return init_net(net, init_type, init_gain, gpu_ids)
 
 
-def define_VAE(net_VAE, omics_dims, omics_mode='multi_omics', norm_type='batch', filter_num=8, kernel_size=9, leaky_slope=0.2, dropout_p=0,
+def define_VAE(param, net_VAE, omics_subset_dims, omics_dims, omics_mode='multi_omics', norm_type='batch', filter_num=8, kernel_size=9, leaky_slope=0.2, dropout_p=0,
                latent_dim=256, init_type='normal', init_gain=0.02, gpu_ids=[]):
     """
     Create the VAE network
@@ -2111,7 +2131,7 @@ def define_VAE(net_VAE, omics_dims, omics_mode='multi_omics', norm_type='batch',
 
     elif net_VAE == 'fc':
         if omics_mode == 'abc':
-            net = FcVaeABC(omics_dims, norm_layer, leaky_slope, dropout_p, latent_dim=latent_dim)
+            net = FcVaeABC(param, omics_dims, omics_subset_dims, norm_layer, leaky_slope, dropout_p, latent_dim=latent_dim)
         elif omics_mode == 'ab':
             net = FcVaeAB(omics_dims, norm_layer, leaky_slope, dropout_p, latent_dim=latent_dim)
         elif omics_mode == 'b':
@@ -2126,7 +2146,7 @@ def define_VAE(net_VAE, omics_dims, omics_mode='multi_omics', norm_type='batch',
     return init_net(net, init_type, init_gain, gpu_ids)
 
 
-def define_down(net_down, norm_type='batch', leaky_slope=0.2, dropout_p=0, latent_dim=256, class_num=2, time_num=256,
+def define_down(param, net_down, norm_type='batch', leaky_slope=0.2, dropout_p=0, latent_dim=256, class_num=2, time_num=256,
                 task_num=7, init_type='normal', init_gain=0.02, gpu_ids=[]):
     """
         Create the downstream task network
@@ -2157,7 +2177,7 @@ def define_down(net_down, norm_type='batch', leaky_slope=0.2, dropout_p=0, laten
     norm_layer = get_norm_layer(norm_type=norm_type)
 
     if net_down == 'multi_FC_classifier':
-        net = MultiFcClassifier(class_num, latent_dim, norm_layer, leaky_slope, dropout_p)
+        net = MultiFcClassifier(param, class_num, latent_dim, norm_layer, leaky_slope, dropout_p)
     elif net_down == 'multi_FC_regression':
         net = MultiFcRegression(latent_dim, norm_layer, leaky_slope, dropout_p)
     elif net_down == 'multi_FC_survival':

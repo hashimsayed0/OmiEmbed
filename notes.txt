@@ -29,3 +29,7 @@ Final report modifications
 1. Normalize C dataset too, and test ABC_inter_MSE
 2. future work section on baseline paper
 3. zero shot learning
+
+final Experiments
+all normalized
+1. k_embed

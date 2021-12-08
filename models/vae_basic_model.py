@@ -31,6 +31,15 @@ class VaeBasicModel(BasicModel):
         # input tensor
         self.input_omics = []
         self.data_index = None  # The indexes of input data
+        self.input_omics_subsets = []
+
+        # for feature subsetting
+        if self.param.use_subset_features:
+            self.omics_subset_dims = []
+            for i in range(3):
+                self.omics_subset_dims.append(param.omics_dims[i] // param.subset_num)
+        else:
+            self.omics_subset_dims = None
 
         # output tensor
         self.z = None
@@ -39,7 +48,7 @@ class VaeBasicModel(BasicModel):
         self.log_var = None
 
         # define the network
-        self.netEmbed = networks.define_VAE(param.net_VAE, param.omics_dims, param.omics_mode,
+        self.netEmbed = networks.define_VAE(param, param.net_VAE, self.omics_subset_dims, param.omics_dims, param.omics_mode,
                                             param.norm_type, param.filter_num, param.conv_k_size, param.leaky_slope,
                                             param.dropout_p, param.latent_space_dim, param.init_type, param.init_gain,
                                             self.gpu_ids)
@@ -78,17 +87,41 @@ class VaeBasicModel(BasicModel):
                 self.input_omics.append(input_B)
             else:
                 self.input_omics.append(input_dict['input_omics'][i].to(self.device))
+        
+        
+        if self.param.use_subset_features:
+            self.input_omics_subsets = []
+            for i in range(self.param.subset_num):
+                input_subset = []
+                for j in range(3):
+                    subset_size = self.input_omics[j].shape[1] // self.param.subset_num
+                    indices = torch.tensor(range(subset_size * i, subset_size * (i+1))).to(self.device)
+                    # mask = torch.zeros_like(self.input_omics[j])
+                    # mask[:, indices] = 1
+                    # input_subset.append(mask * self.input_omics[j])
+                    input_subset.append(torch.index_select(self.input_omics[j], 1, indices))
+                self.input_omics_subsets.append(input_subset)
 
         self.data_index = input_dict['index']
 
     def forward(self):
         # Get the output tensor
-        self.z, self.recon_omics, self.mean, self.log_var = self.netEmbed(self.input_omics)
-        # define the latent
-        if self.phase == 'p1' or self.phase == 'p3':
-            self.latent = self.mean
-        elif self.phase == 'p2':
-            self.latent = self.mean.detach()
+        if self.param.use_subset_features:
+            self.z, self.recon_omics, self.mean, self.log_var = self.netEmbed(self.input_omics_subsets[self.subset])
+            # define the latent
+            if self.phase == 'p1' or self.phase == 'p3':
+                # self.latent = self.mean
+                self.latent = self.z
+            elif self.phase == 'p2':
+                # self.latent = self.mean.detach()
+                self.latent = self.z.detach()
+        else:
+            self.z, self.recon_omics, self.mean, self.log_var = self.netEmbed(self.input_omics)
+            # define the latent
+            if self.phase == 'p1' or self.phase == 'p3':
+                self.latent = self.mean
+            elif self.phase == 'p2':
+                self.latent = self.mean.detach()
 
     def cal_losses(self):
         """Calculate losses"""
@@ -122,6 +155,8 @@ class VaeBasicModel(BasicModel):
         # Calculate the overall vae loss (embedding loss)
         # LOSS EMBED
         self.loss_embed = self.loss_recon + self.param.k_kl * self.loss_kl
+        # if not self.isTrain:
+        #     self.loss_embed_sum.append(self.loss_embed)
 
     def update(self):
         if self.phase == 'p1':
@@ -144,3 +179,75 @@ class VaeBasicModel(BasicModel):
             self.loss_All.backward()                        # Backpropagation
             self.optimizer_Embed.step()                     # Update weights
             self.optimizer_Down.step()
+        # if self.param.use_subset_features:
+        #     self.loss_embed_sum = []
+        #     self.loss_down_sum = []
+        #     self.y_out_subset = []
+        #     if self.phase == 'p1':
+        #         for subset in range(self.param.subset_num):
+        #             self.subset = subset
+        #             self.forward()
+        #             self.y_out_subset.append(self.y_out)
+        #             self.optimizer_Embed.zero_grad()                # Set gradients to zero
+        #             self.cal_losses()                               # Calculate losses
+        #             self.loss_embed_sum.append(self.loss_embed)
+        #             self.loss_down_sum.append(self.loss_down)
+        #             self.loss_embed.backward()                      # Backpropagation
+        #             self.optimizer_Embed.step()                     # Update weights
+        #     elif self.phase == 'p2':
+        #         for subset in range(self.param.subset_num):
+        #             self.subset = subset
+        #             self.forward()
+        #             self.y_out_subset.append(self.y_out)
+        #             self.optimizer_Down.zero_grad()                 # Set gradients to zero
+        #             self.cal_losses()                               # Calculate losses
+        #             self.loss_embed_sum.append(self.loss_embed)
+        #             self.loss_down_sum.append(self.loss_down)
+        #             self.loss_down.backward()                       # Backpropagation
+        #             self.optimizer_Down.step()                      # Update weights
+        #     elif self.phase == 'p3':
+        #         for subset in range(self.param.subset_num):
+        #             self.subset = subset
+        #             self.forward()
+        #             self.y_out_subset.append(self.y_out)
+        #             self.optimizer_Embed.zero_grad()                # Set gradients to zero
+        #             self.optimizer_Down.zero_grad()
+        #             self.cal_losses()                               # Calculate losses
+        #             self.loss_embed_sum.append(self.loss_embed)
+        #             self.loss_down_sum.append(self.loss_down)
+        #             self.loss_All.backward()                        # Backpropagation
+        #             self.optimizer_Embed.step()                     # Update weights
+        #             self.optimizer_Down.step()
+        #     self.loss_embed = sum(self.loss_embed_sum) / self.param.subset_num
+        #     self.loss_down = sum(self.loss_down_sum) / self.param.subset_num
+        #     if self.param.agg_method == 'mean':
+        #         self.y_out = torch.mean(torch.stack(self.y_out_subset), axis=0)
+        #     elif self.param.agg_method == 'max':
+        #         self.y_out = torch.max(torch.stack(self.y_out_subset), axis=0)[0]
+        #     elif self.param.agg_method == 'min':
+        #         self.y_out = torch.min(torch.stack(self.y_out_subset), axis=0)[0]
+        #     elif self.param.agg_method == 'sum':
+        #         self.y_out = torch.sum(torch.stack(self.y_out_subset), axis=0)
+        # else:
+            # if self.phase == 'p1':
+            #     self.forward()
+            #     self.optimizer_Embed.zero_grad()                # Set gradients to zero
+            #     self.cal_losses()                               # Calculate losses
+            #     self.loss_embed.backward()                      # Backpropagation
+            #     self.optimizer_Embed.step()                     # Update weights
+            # elif self.phase == 'p2':
+            #     self.forward()
+            #     self.optimizer_Down.zero_grad()                 # Set gradients to zero
+            #     self.cal_losses()                               # Calculate losses
+            #     self.loss_down.backward()                       # Backpropagation
+            #     self.optimizer_Down.step()                      # Update weights
+            # elif self.phase == 'p3':
+            #     self.forward()
+            #     self.optimizer_Embed.zero_grad()                # Set gradients to zero
+            #     self.optimizer_Down.zero_grad()
+            #     self.cal_losses()                               # Calculate losses
+            #     self.loss_All.backward()                        # Backpropagation
+            #     self.optimizer_Embed.step()                     # Update weights
+            #     self.optimizer_Down.step()
+
+        
