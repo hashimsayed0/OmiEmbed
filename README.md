@@ -63,5 +63,3 @@ cd checkpoints/test/
 tensorboard --logdir=tb_log --bind_all
 ```
 
-## License
-This source code is licensed under the [MIT](https://github.com/zhangxiaoyu11/OmiEmbed/blob/main/LICENSE) license.
