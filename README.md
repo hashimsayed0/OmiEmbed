@@ -1,12 +1,12 @@
-# OmiEmbed+
+# SubOmiEmbed
 
-**OmiEmbed+: Representation Learning of Multi-omics Data Using Variational Autoencoders for Cancer Type Classification**
+**SubOmiEmbed: Self-supervised Representation Learning of Multi-omics Data for Cancer Type Classification**
 
 This codebase is built upon https://github.com/zhangxiaoyu11/OmiEmbed
 
 ## Introduction
 
-OmiEmbed is a unified framework for deep learning-based omics data analysis, which supports:
+SubOmiEmbed is an extension of OmiEmbed that supports the SSL technique of feature subsetting for the following tasks.
 
 1.  Multi-omics integration
 2.  Dimensionality reduction
