@@ -1,7 +1,9 @@
 # SubOmiEmbed
 
 **SubOmiEmbed: Self-supervised Representation Learning of Multi-omics Data for Cancer Type Classification**
+
 Paper: https://arxiv.org/abs/2202.01672
+
 This codebase is built upon https://github.com/zhangxiaoyu11/OmiEmbed
 
 ## Introduction
